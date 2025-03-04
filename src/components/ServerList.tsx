@@ -25,7 +25,6 @@ export default function ServerList() {
     try {
       const serverList = await getServers();
 
-      // Check status for each server
       const serversWithStatus = await Promise.all(
         serverList.map(async (server: MCPServer) => ({
           ...server,
@@ -44,14 +43,12 @@ export default function ServerList() {
     }
   }, []);
 
-  // Filter servers based on search text
   const filteredServers = servers.filter((server) => {
     if (!searchText) return true;
     const searchLower = searchText.toLowerCase();
     return server.name.toLowerCase().includes(searchLower) || server.command.toLowerCase().includes(searchLower);
   });
 
-  // Sort servers based on sort options
   const sortedServers = [...filteredServers].sort((a, b) => {
     const { key, direction } = sortOptions;
     const directionMultiplier = direction === "asc" ? 1 : -1;
@@ -77,7 +74,6 @@ export default function ServerList() {
     return 0;
   });
 
-  // Handle server actions with error handling
   const handleServerAction = async (
     action: (server: MCPServer) => Promise<void>,
     server: MCPServer,
@@ -97,7 +93,6 @@ export default function ServerList() {
 
   const handleDeleteServer = async (server: MCPServer) => {
     try {
-      // Show confirmation dialog
       const confirmed = await confirmAlert({
         title: "Delete Server",
         message: `Are you sure you want to delete "${server.name}"?`,
@@ -111,7 +106,7 @@ export default function ServerList() {
       });
 
       if (!confirmed) {
-        return; // User cancelled the deletion
+        return;
       }
 
       await deleteServer(server.id);
@@ -132,13 +127,11 @@ export default function ServerList() {
 
   const setSortOrder = (key: SortOptions["key"]) => {
     if (sortOptions.key === key) {
-      // Toggle direction if same key
       setSortOptions({
         key,
         direction: sortOptions.direction === "asc" ? "desc" : "asc",
       });
     } else {
-      // Default to ascending for new key
       setSortOptions({
         key,
         direction: "asc",

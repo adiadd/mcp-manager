@@ -63,7 +63,7 @@ export function configToServers(config: MCPServerConfig): MCPServer[] {
     name,
     command: details.command,
     args: details.args,
-    status: "offline", // We'll check actual status separately
+    status: "offline",
   }));
 }
 
@@ -162,35 +162,21 @@ export async function deleteServer(serverId: string): Promise<void> {
  */
 export async function checkServerStatus(server: MCPServer): Promise<"online" | "offline"> {
   try {
-    // Check if a process with this command and args is running
     return new Promise<"online" | "offline">((resolve) => {
-      // Create a command to find the server process
-      // For macOS, we use ps and grep to check for running processes
-      // Escape special characters in the command and args for the grep pattern
       const escapeForGrep = (str: string) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-      // First try to find an exact match for the process
-      const commandEscaped = escapeForGrep(server.command);
-
-      // We need to be careful with the grep pattern to avoid false positives
-      // Use word boundaries where possible and check for the command's basename
       const commandBase = server.command.split("/").pop() || server.command;
+      const commandEscaped = escapeForGrep(server.command);
       const commandBaseEscaped = escapeForGrep(commandBase);
 
-      // Try different grep patterns, from most specific to least specific
       const patterns = [
-        // Full command with arguments
         `${escapeForGrep(server.command)} ${server.args.map(escapeForGrep).join(" ")}`,
-        // Just the command (may be a path)
         commandEscaped,
-        // Just the basename of the command
         commandBaseEscaped,
       ];
 
-      // Try each pattern in order until we find a match
       const checkWithPattern = (index: number) => {
         if (index >= patterns.length) {
-          // If we've tried all patterns, move to port check
           checkPort();
           return;
         }
@@ -202,33 +188,26 @@ export async function checkServerStatus(server: MCPServer): Promise<"online" | "
           if (!error && stdout.trim()) {
             resolve("online");
           } else {
-            // Try the next pattern
             checkWithPattern(index + 1);
           }
         });
       };
 
-      // Check if a port is being used (fallback)
       const checkPort = () => {
-        // Look for common port patterns in the args
         let port: string | undefined;
 
-        // Check for direct port numbers or common port flags
         for (const arg of server.args) {
-          // Direct port number
           if (/^\d+$/.test(arg)) {
             port = arg;
             break;
           }
 
-          // --port=XXXX format
           const portMatch = arg.match(/--port[=\s](\d+)/);
           if (portMatch) {
             port = portMatch[1];
             break;
           }
 
-          // -p XXXX format (need to check next arg)
           if (arg === "-p" || arg === "--port") {
             const nextIndex = server.args.indexOf(arg) + 1;
             if (nextIndex < server.args.length && /^\d+$/.test(server.args[nextIndex])) {
@@ -251,7 +230,6 @@ export async function checkServerStatus(server: MCPServer): Promise<"online" | "
         }
       };
 
-      // Start the check process
       checkWithPattern(0);
     });
   } catch (error) {

@@ -49,7 +49,6 @@ export default function ServerDetail({ server, onServerUpdated }: ServerDetailPr
     }
   };
 
-  // Create markdown content for server details
   const markdown = `
 # ${server.name}
 

@@ -25,13 +25,11 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
 
   function handleNameChange(value: string) {
     setFormValues((prev) => ({ ...prev, name: value }));
-    // Remove immediate validation
     setNameError(undefined);
   }
 
   function handleCommandChange(value: string) {
     setFormValues((prev) => ({ ...prev, command: value }));
-    // Remove immediate validation
     setCommandError(undefined);
   }
 
@@ -39,7 +37,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
     setFormValues((prev) => ({ ...prev, args: value }));
   }
 
-  // Add validation function to validate before submission
   function validateForm(): boolean {
     let isValid = true;
 
@@ -63,7 +60,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
   async function handleSubmit(values: Form.Values) {
     if (isSubmitting) return;
 
-    // Validate form before submitting
     if (!validateForm()) {
       return;
     }
@@ -76,7 +72,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         .filter((arg) => arg.length > 0);
 
       if (server) {
-        // Update existing server
         await updateServer({
           ...server,
           name: values.name as string,
@@ -93,7 +88,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         }
         pop();
       } else {
-        // Add new server
         await addServer({
           name: values.name as string,
           command: values.command as string,
@@ -107,7 +101,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         if (onServerAdded) {
           await onServerAdded();
         }
-        // Reset form for adding more servers
         setFormValues({
           name: "",
           command: "",
@@ -128,7 +121,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
   async function handleSubmitAndBack(values: Form.Values) {
     if (isSubmitting) return;
 
-    // Validate form before submitting
     if (!validateForm()) {
       return;
     }
@@ -141,7 +133,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         .filter((arg) => arg.length > 0);
 
       if (server) {
-        // Update existing server
         await updateServer({
           ...server,
           name: values.name as string,
@@ -154,7 +145,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
           message: `${values.name} has been updated`,
         });
       } else {
-        // Add new server
         await addServer({
           name: values.name as string,
           command: values.command as string,
@@ -210,7 +200,6 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
           <Action
             title="Cancel"
             onAction={pop}
-            // Removed the reserved shortcut
           />
         </ActionPanel>
       }
