@@ -90,6 +90,16 @@ export default function ServerList() {
       searchBarPlaceholder="Search servers by name or command..."
       navigationTitle="MCP Servers"
       throttle
+      actions={
+        <ActionPanel>
+          <Action.Push 
+            title="Add Server" 
+            icon={Icon.Plus} 
+            target={<ServerForm onServerAdded={revalidate} />} 
+            shortcut={{ modifiers: ["cmd"], key: "n" }}
+          />
+        </ActionPanel>
+      }
     >
       <List.Section title="MCP Servers" subtitle={sortedServers.length.toString()}>
         {sortedServers.map((server) => (
@@ -130,6 +140,7 @@ export default function ServerList() {
                     title="Add New Server"
                     icon={Icon.Plus}
                     target={<ServerForm onServerAdded={revalidate} />}
+                    shortcut={{ modifiers: ["cmd"], key: "n" }}
                   />
                 </ActionPanel.Section>
 
@@ -152,7 +163,12 @@ export default function ServerList() {
           }
           actions={
             <ActionPanel>
-              <Action.Push title="Add Server" icon={Icon.Plus} target={<ServerForm onServerAdded={revalidate} />} />
+              <Action.Push 
+                title="Add Server" 
+                icon={Icon.Plus} 
+                target={<ServerForm onServerAdded={revalidate} />} 
+                shortcut={{ modifiers: ["cmd"], key: "n" }}
+              />
             </ActionPanel>
           }
         />
