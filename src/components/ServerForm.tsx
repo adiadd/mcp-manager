@@ -24,36 +24,56 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
   });
 
   function handleNameChange(value: string) {
-    setFormValues(prev => ({ ...prev, name: value }));
-    if (value.length === 0) {
-      setNameError("The name is required");
-    } else {
-      setNameError(undefined);
-    }
+    setFormValues((prev) => ({ ...prev, name: value }));
+    // Remove immediate validation
+    setNameError(undefined);
   }
 
   function handleCommandChange(value: string) {
-    setFormValues(prev => ({ ...prev, command: value }));
-    if (value.length === 0) {
-      setCommandError("The command is required");
-    } else {
-      setCommandError(undefined);
-    }
+    setFormValues((prev) => ({ ...prev, command: value }));
+    // Remove immediate validation
+    setCommandError(undefined);
   }
 
   function handleArgsChange(value: string) {
-    setFormValues(prev => ({ ...prev, args: value }));
+    setFormValues((prev) => ({ ...prev, args: value }));
+  }
+
+  // Add validation function to validate before submission
+  function validateForm(): boolean {
+    let isValid = true;
+
+    if (formValues.name.trim().length === 0) {
+      setNameError("The name is required");
+      isValid = false;
+    } else {
+      setNameError(undefined);
+    }
+
+    if (formValues.command.trim().length === 0) {
+      setCommandError("The command is required");
+      isValid = false;
+    } else {
+      setCommandError(undefined);
+    }
+
+    return isValid;
   }
 
   async function handleSubmit(values: Form.Values) {
     if (isSubmitting) return;
-    
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const argsArray = (values.args as string)
         .split("\n")
-        .map(arg => arg.trim())
-        .filter(arg => arg.length > 0);
+        .map((arg) => arg.trim())
+        .filter((arg) => arg.length > 0);
 
       if (server) {
         // Update existing server
@@ -107,13 +127,18 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
 
   async function handleSubmitAndBack(values: Form.Values) {
     if (isSubmitting) return;
-    
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const argsArray = (values.args as string)
         .split("\n")
-        .map(arg => arg.trim())
-        .filter(arg => arg.length > 0);
+        .map((arg) => arg.trim())
+        .filter((arg) => arg.length > 0);
 
       if (server) {
         // Update existing server
@@ -163,29 +188,29 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
       actions={
         <ActionPanel>
           {server ? (
-            <Action.SubmitForm 
-              title="Update Server" 
-              onSubmit={handleSubmit} 
-              shortcut={{ modifiers: ["cmd"], key: "s" }} 
+            <Action.SubmitForm
+              title="Update Server"
+              onSubmit={handleSubmit}
+              shortcut={{ modifiers: ["cmd"], key: "s" }}
             />
           ) : (
             <>
-              <Action.SubmitForm 
-                title="Add Server" 
-                onSubmit={handleSubmit} 
-                shortcut={{ modifiers: ["cmd"], key: "s" }} 
+              <Action.SubmitForm
+                title="Add Server"
+                onSubmit={handleSubmit}
+                shortcut={{ modifiers: ["cmd"], key: "s" }}
               />
-              <Action.SubmitForm 
-                title="Add Server and Back" 
-                onSubmit={handleSubmitAndBack} 
-                shortcut={{ modifiers: ["cmd", "shift"], key: "s" }} 
+              <Action.SubmitForm
+                title="Add Server and Back"
+                onSubmit={handleSubmitAndBack}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
               />
             </>
           )}
-          <Action 
-            title="Cancel" 
-            onAction={pop} 
-            shortcut={{ modifiers: ["cmd"], key: "escape" }} 
+          <Action
+            title="Cancel"
+            onAction={pop}
+            // Removed the reserved shortcut
           />
         </ActionPanel>
       }
@@ -221,4 +246,4 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
       />
     </Form>
   );
-} 
+}

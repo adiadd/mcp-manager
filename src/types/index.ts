@@ -9,10 +9,13 @@ export interface MCPServer {
 }
 
 export interface MCPServerConfig {
-  mcpServers: Record<string, {
-    command: string;
-    args: string[];
-  }>;
+  mcpServers: Record<
+    string,
+    {
+      command: string;
+      args: string[];
+    }
+  >;
 }
 
 export type SortKey = "name" | "status" | "lastConnectionTime";
@@ -21,4 +24,4 @@ export type SortDirection = "asc" | "desc";
 export interface SortOptions {
   key: SortKey;
   direction: SortDirection;
-} 
+}

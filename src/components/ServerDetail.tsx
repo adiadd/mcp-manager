@@ -1,4 +1,4 @@
-import { Action, ActionPanel, Color, Detail, Icon, Toast, showToast } from "@raycast/api";
+import { Action, ActionPanel, Alert, Color, Detail, Icon, Toast, confirmAlert, showToast } from "@raycast/api";
 import type { MCPServer } from "../types";
 import { deleteServer, restartServer, startServer, stopServer } from "../utils/mcp-server";
 import ServerForm from "./ServerForm";
@@ -65,10 +65,16 @@ ${server.command} ${server.args.join(" ")}
 ## Details
 - **ID**: \`${server.id}\`
 - **Command**: \`${server.command}\`
-- **Arguments**: ${server.args.length > 0 ? server.args.map(arg => `\`${arg}\``).join(", ") : "None"}
+- **Arguments**: ${server.args.length > 0 ? server.args.map((arg) => `\`${arg}\``).join(", ") : "None"}
 
-${server.metadata ? `## Metadata
-${Object.entries(server.metadata).map(([key, value]) => `- **${key}**: ${value}`).join("\n")}` : ""}
+${
+  server.metadata
+    ? `## Metadata
+${Object.entries(server.metadata)
+  .map(([key, value]) => `- **${key}**: ${value}`)
+  .join("\n")}`
+    : ""
+}
 `;
 
   return (
@@ -77,7 +83,15 @@ ${Object.entries(server.metadata).map(([key, value]) => `- **${key}**: ${value}`
       navigationTitle={`${server.name} Details`}
       metadata={
         <Detail.Metadata>
-          <Detail.Metadata.Label title="Status" text={server.status === "online" ? "Online" : "Offline"} icon={server.status === "online" ? { source: Icon.CircleFilled, tintColor: Color.Green } : { source: Icon.Circle, tintColor: Color.Red }} />
+          <Detail.Metadata.Label
+            title="Status"
+            text={server.status === "online" ? "Online" : "Offline"}
+            icon={
+              server.status === "online"
+                ? { source: Icon.CircleFilled, tintColor: Color.Green }
+                : { source: Icon.Circle, tintColor: Color.Red }
+            }
+          />
           <Detail.Metadata.Label title="Command" text={server.command} />
           <Detail.Metadata.Separator />
           <Detail.Metadata.TagList title="Arguments">
@@ -86,7 +100,10 @@ ${Object.entries(server.metadata).map(([key, value]) => `- **${key}**: ${value}`
             ))}
           </Detail.Metadata.TagList>
           {server.lastConnectionTime && (
-            <Detail.Metadata.Label title="Last Connection" text={new Date(server.lastConnectionTime).toLocaleString()} />
+            <Detail.Metadata.Label
+              title="Last Connection"
+              text={new Date(server.lastConnectionTime).toLocaleString()}
+            />
           )}
         </Detail.Metadata>
       }
@@ -102,7 +119,7 @@ ${Object.entries(server.metadata).map(([key, value]) => `- **${key}**: ${value}`
               />
             ) : (
               <Action
-                title="Stop Server"
+                title="Stop Server (graceful)"
                 icon={Icon.Stop}
                 shortcut={{ modifiers: ["cmd"], key: "s" }}
                 onAction={() => handleServerAction(stopServer, "stop")}
@@ -114,11 +131,47 @@ ${Object.entries(server.metadata).map(([key, value]) => `- **${key}**: ${value}`
               shortcut={{ modifiers: ["cmd", "shift"], key: "r" }}
               onAction={() => handleServerAction(restartServer, "restart")}
             />
+            {server.status === "online" && (
+              <Action
+                title="Force Stop Server"
+                icon={{ source: Icon.XmarkCircle, tintColor: Color.Red }}
+                style={Action.Style.Destructive}
+                shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
+                onAction={async () => {
+                  const confirmed = await confirmAlert({
+                    title: "Force Stop Server",
+                    message: `Are you sure you want to force stop ${server.name}?`,
+                    primaryAction: {
+                      title: "Force Stop",
+                      style: Alert.ActionStyle.Destructive,
+                    },
+                  });
+
+                  if (confirmed) {
+                    try {
+                      await stopServer(server, true);
+                      await onServerUpdated();
+                      showToast({
+                        style: Toast.Style.Success,
+                        title: "Server Force Stopped",
+                        message: `${server.name} has been force stopped`,
+                      });
+                    } catch (error) {
+                      showToast({
+                        style: Toast.Style.Failure,
+                        title: "Failed to Force Stop",
+                        message: error instanceof Error ? error.message : String(error),
+                      });
+                    }
+                  }
+                }}
+              />
+            )}
           </ActionPanel.Section>
           <ActionPanel.Section title="Edit Actions">
             <Action.Push
-              title="Edit Server" 
-              icon={Icon.Pencil} 
+              title="Edit Server"
+              icon={Icon.Pencil}
               shortcut={{ modifiers: ["cmd"], key: "e" }}
               target={<ServerForm server={server} onServerAdded={onServerUpdated} />}
             />
@@ -134,4 +187,4 @@ ${Object.entries(server.metadata).map(([key, value]) => `- **${key}**: ${value}`
       }
     />
   );
-} 
+}
