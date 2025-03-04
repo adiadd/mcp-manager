@@ -57,7 +57,7 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
     return isValid;
   }
 
-  async function handleSubmit(values: Form.Values) {
+  async function handleSubmit() {
     if (isSubmitting) return;
 
     if (!validateForm()) {
@@ -66,7 +66,7 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
 
     try {
       setIsSubmitting(true);
-      const argsArray = (values.args as string)
+      const argsArray = formValues.args
         .split("\n")
         .map((arg) => arg.trim())
         .filter((arg) => arg.length > 0);
@@ -74,88 +74,28 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
       if (server) {
         await updateServer({
           ...server,
-          name: values.name as string,
-          command: values.command as string,
+          name: formValues.name,
+          command: formValues.command,
           args: argsArray,
         });
         showToast({
           style: Toast.Style.Success,
           title: "Server Updated",
-          message: `${values.name} has been updated`,
+          message: `${formValues.name} has been updated`,
         });
-        if (onServerAdded) {
-          await onServerAdded();
-        }
-        pop();
       } else {
         await addServer({
-          name: values.name as string,
-          command: values.command as string,
+          name: formValues.name,
+          command: formValues.command,
           args: argsArray,
         });
         showToast({
           style: Toast.Style.Success,
           title: "Server Added",
-          message: `${values.name} has been added`,
-        });
-        if (onServerAdded) {
-          await onServerAdded();
-        }
-        setFormValues({
-          name: "",
-          command: "",
-          args: "",
+          message: `${formValues.name} has been added`,
         });
       }
-    } catch (error) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: server ? "Failed to Update Server" : "Failed to Add Server",
-        message: error instanceof Error ? error.message : String(error),
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
 
-  async function handleSubmitAndBack(values: Form.Values) {
-    if (isSubmitting) return;
-
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const argsArray = (values.args as string)
-        .split("\n")
-        .map((arg) => arg.trim())
-        .filter((arg) => arg.length > 0);
-
-      if (server) {
-        await updateServer({
-          ...server,
-          name: values.name as string,
-          command: values.command as string,
-          args: argsArray,
-        });
-        showToast({
-          style: Toast.Style.Success,
-          title: "Server Updated",
-          message: `${values.name} has been updated`,
-        });
-      } else {
-        await addServer({
-          name: values.name as string,
-          command: values.command as string,
-          args: argsArray,
-        });
-        showToast({
-          style: Toast.Style.Success,
-          title: "Server Added",
-          message: `${values.name} has been added`,
-        });
-      }
       if (onServerAdded) {
         await onServerAdded();
       }
@@ -173,50 +113,25 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
 
   return (
     <Form
-      isLoading={isSubmitting}
-      navigationTitle={server ? `Edit ${server.name}` : "Add New MCP Server"}
       actions={
         <ActionPanel>
-          {server ? (
-            <Action.SubmitForm
-              title="Update Server"
-              onSubmit={handleSubmit}
-              shortcut={{ modifiers: ["cmd"], key: "s" }}
-            />
-          ) : (
-            <>
-              <Action.SubmitForm
-                title="Add Server"
-                onSubmit={handleSubmit}
-                shortcut={{ modifiers: ["cmd"], key: "s" }}
-              />
-              <Action.SubmitForm
-                title="Add Server and Back"
-                onSubmit={handleSubmitAndBack}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
-              />
-            </>
-          )}
-          <Action
-            title="Cancel"
-            onAction={pop}
-          />
+          <Action.SubmitForm title="Save Server" onSubmit={handleSubmit} />
         </ActionPanel>
       }
+      isLoading={isSubmitting}
     >
       <Form.TextField
         id="name"
         title="Name"
-        placeholder="My MCP Server"
+        placeholder="Enter server name"
         value={formValues.name}
         onChange={handleNameChange}
         error={nameError}
-        autoFocus={!server}
       />
       <Form.TextField
         id="command"
         title="Command"
-        placeholder="npx"
+        placeholder="Enter command (e.g., npx, python, uv)"
         value={formValues.command}
         onChange={handleCommandChange}
         error={commandError}
@@ -224,14 +139,10 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
       <Form.TextArea
         id="args"
         title="Arguments"
-        placeholder="-y
-@modelcontextprotocol/server-filesystem
-/Users/username/Desktop
-/Users/username/Downloads"
+        placeholder="Enter one argument per line"
         value={formValues.args}
         onChange={handleArgsChange}
-        info="Each line will be treated as a separate argument"
-        enableMarkdown={true}
+        info="Each line represents a separate argument"
       />
     </Form>
   );

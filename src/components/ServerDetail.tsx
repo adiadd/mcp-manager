@@ -1,6 +1,6 @@
-import { Action, ActionPanel, Alert, Color, Detail, Icon, Toast, confirmAlert, showToast } from "@raycast/api";
+import { Action, ActionPanel, Alert, Detail, Icon, Toast, confirmAlert, showToast } from "@raycast/api";
 import type { MCPServer } from "../types";
-import { deleteServer, restartServer, startServer, stopServer } from "../utils/mcp-server";
+import { deleteServer } from "../utils/mcp-server";
 import ServerForm from "./ServerForm";
 
 interface ServerDetailProps {
@@ -18,28 +18,26 @@ const getArgKey = (arg: string) => {
 };
 
 export default function ServerDetail({ server, onServerUpdated }: ServerDetailProps) {
-  const handleServerAction = async (action: (server: MCPServer) => Promise<void>, actionName: string) => {
-    try {
-      await action(server);
-      await onServerUpdated();
-    } catch (error) {
-      showToast({
-        style: Toast.Style.Failure,
-        title: `Failed to ${actionName}`,
-        message: error instanceof Error ? error.message : String(error),
-      });
-    }
-  };
-
   const handleDeleteServer = async () => {
     try {
-      await deleteServer(server.id);
-      await onServerUpdated();
-      showToast({
-        style: Toast.Style.Success,
-        title: "Server Deleted",
-        message: `${server.name} has been deleted`,
+      const confirmed = await confirmAlert({
+        title: "Delete Server",
+        message: `Are you sure you want to delete "${server.name}"?`,
+        primaryAction: {
+          title: "Delete",
+          style: Alert.ActionStyle.Destructive,
+        },
       });
+
+      if (confirmed) {
+        await deleteServer(server.id);
+        await onServerUpdated();
+        showToast({
+          style: Toast.Style.Success,
+          title: "Server Deleted",
+          message: `${server.name} has been deleted`,
+        });
+      }
     } catch (error) {
       showToast({
         style: Toast.Style.Failure,
@@ -51,10 +49,6 @@ export default function ServerDetail({ server, onServerUpdated }: ServerDetailPr
 
   const markdown = `
 # ${server.name}
-
-## Status
-**${server.status === "online" ? "🟢 Online" : "🔴 Offline"}**
-${server.lastConnectionTime ? `\nLast Connection: ${new Date(server.lastConnectionTime).toLocaleString()}` : ""}
 
 ## Command
 \`\`\`
@@ -82,106 +76,37 @@ ${Object.entries(server.metadata)
       navigationTitle={`${server.name} Details`}
       metadata={
         <Detail.Metadata>
-          <Detail.Metadata.Label
-            title="Status"
-            text={server.status === "online" ? "Online" : "Offline"}
-            icon={
-              server.status === "online"
-                ? { source: Icon.CircleFilled, tintColor: Color.Green }
-                : { source: Icon.Circle, tintColor: Color.Red }
-            }
-          />
           <Detail.Metadata.Label title="Command" text={server.command} />
           <Detail.Metadata.Separator />
           <Detail.Metadata.TagList title="Arguments">
             {server.args.map((arg) => (
-              <Detail.Metadata.TagList.Item key={getArgKey(arg)} text={arg} color={Color.Blue} />
+              <Detail.Metadata.TagList.Item key={getArgKey(arg)} text={arg} />
             ))}
           </Detail.Metadata.TagList>
-          {server.lastConnectionTime && (
-            <Detail.Metadata.Label
-              title="Last Connection"
-              text={new Date(server.lastConnectionTime).toLocaleString()}
-            />
+          {server.metadata && (
+            <>
+              <Detail.Metadata.Separator />
+              <Detail.Metadata.Label title="Metadata" />
+              {Object.entries(server.metadata).map(([key, value]) => (
+                <Detail.Metadata.Label key={key} title={key} text={value} />
+              ))}
+            </>
           )}
         </Detail.Metadata>
       }
       actions={
         <ActionPanel>
-          <ActionPanel.Section title="Server Actions">
-            {server.status === "offline" ? (
-              <Action
-                title="Start Server"
-                icon={Icon.Play}
-                shortcut={{ modifiers: ["cmd"], key: "s" }}
-                onAction={() => handleServerAction(startServer, "start")}
-              />
-            ) : (
-              <Action
-                title="Stop Server (graceful)"
-                icon={Icon.Stop}
-                shortcut={{ modifiers: ["cmd"], key: "s" }}
-                onAction={() => handleServerAction(stopServer, "stop")}
-              />
-            )}
-            <Action
-              title="Restart Server"
-              icon={Icon.RotateClockwise}
-              shortcut={{ modifiers: ["cmd", "shift"], key: "r" }}
-              onAction={() => handleServerAction(restartServer, "restart")}
-            />
-            {server.status === "online" && (
-              <Action
-                title="Force Stop Server"
-                icon={{ source: Icon.XmarkCircle, tintColor: Color.Red }}
-                style={Action.Style.Destructive}
-                shortcut={{ modifiers: ["cmd", "shift"], key: "s" }}
-                onAction={async () => {
-                  const confirmed = await confirmAlert({
-                    title: "Force Stop Server",
-                    message: `Are you sure you want to force stop ${server.name}?`,
-                    primaryAction: {
-                      title: "Force Stop",
-                      style: Alert.ActionStyle.Destructive,
-                    },
-                  });
-
-                  if (confirmed) {
-                    try {
-                      await stopServer(server, true);
-                      await onServerUpdated();
-                      showToast({
-                        style: Toast.Style.Success,
-                        title: "Server Force Stopped",
-                        message: `${server.name} has been force stopped`,
-                      });
-                    } catch (error) {
-                      showToast({
-                        style: Toast.Style.Failure,
-                        title: "Failed to Force Stop",
-                        message: error instanceof Error ? error.message : String(error),
-                      });
-                    }
-                  }
-                }}
-              />
-            )}
-          </ActionPanel.Section>
-          <ActionPanel.Section title="Edit Actions">
-            <Action.Push
-              title="Edit Server"
-              icon={Icon.Pencil}
-              shortcut={{ modifiers: ["cmd"], key: "e" }}
-              target={<ServerForm server={server} onServerAdded={onServerUpdated} />}
-            />
-            <Action
-              title="Delete Server"
-              icon={Icon.Trash}
-              style={Action.Style.Destructive}
-              shortcut={{ modifiers: ["cmd"], key: "backspace" }}
-              onAction={handleDeleteServer}
-            />
-          </ActionPanel.Section>
+          <Action.Push
+            title="Edit Server"
+            icon={Icon.Pencil}
+            target={<ServerForm server={server} onServerAdded={onServerUpdated} />}
+          />
+          <Action
+            title="Delete Server"
+            icon={Icon.Trash}
+            style={Action.Style.Destructive}
+            onAction={handleDeleteServer}
+          />
         </ActionPanel>
       }
     />

@@ -3,8 +3,6 @@ export interface MCPServer {
   name: string;
   command: string;
   args: string[];
-  status?: "online" | "offline";
-  lastConnectionTime?: string;
   metadata?: Record<string, string>;
 }
 
@@ -18,7 +16,7 @@ export interface MCPServerConfig {
   >;
 }
 
-export type SortKey = "name" | "status" | "lastConnectionTime";
+export type SortKey = "name";
 export type SortDirection = "asc" | "desc";
 
 export interface SortOptions {
