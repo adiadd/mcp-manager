@@ -106,6 +106,7 @@ ${Object.entries(server.metadata)
             icon={Icon.Trash}
             style={Action.Style.Destructive}
             onAction={handleDeleteServer}
+            shortcut={{ modifiers: ["cmd"], key: "backspace" }}
           />
         </ActionPanel>
       }

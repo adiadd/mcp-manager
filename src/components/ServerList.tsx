@@ -132,6 +132,7 @@ export default function ServerList() {
                     icon={Icon.Trash}
                     style={Action.Style.Destructive}
                     onAction={() => handleDeleteServer(server)}
+                    shortcut={{ modifiers: ["cmd"], key: "backspace" }}
                   />
                 </ActionPanel.Section>
 
