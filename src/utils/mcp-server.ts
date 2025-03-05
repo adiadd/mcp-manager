@@ -10,6 +10,7 @@ const MCPServerSchema = z.object({
   name: z.string().min(1, "Server name is required"),
   command: z.string().min(1, "Command is required"),
   args: z.array(z.string()),
+  env: z.record(z.string()).optional(),
   metadata: z.record(z.string()).optional(),
 });
 
@@ -59,6 +60,7 @@ export function configToServers(config: MCPServerConfig): MCPServer[] {
     name,
     command: details.command,
     args: details.args,
+    env: details.env,
   }));
 }
 
@@ -92,6 +94,7 @@ export async function addServer(server: Omit<MCPServer, "id">): Promise<MCPServe
   config.mcpServers[serverWithId.id] = {
     command: server.command,
     args: server.args,
+    env: server.env,
   };
 
   await writeConfigFile(config);
@@ -124,6 +127,7 @@ export async function updateServer(server: MCPServer): Promise<MCPServer> {
     config.mcpServers[newId] = {
       command: server.command,
       args: server.args,
+      env: server.env,
     };
 
     // Delete old ID
@@ -139,6 +143,7 @@ export async function updateServer(server: MCPServer): Promise<MCPServer> {
   config.mcpServers[server.id] = {
     command: server.command,
     args: server.args,
+    env: server.env,
   };
 
   await writeConfigFile(config);
