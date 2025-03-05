@@ -17,6 +17,14 @@ const getArgKey = (arg: string) => {
   return `arg-${hash}`;
 };
 
+// Helper function to mask sensitive values, showing only last 5 characters
+const maskSensitiveValue = (value: string) => {
+  if (!value || value.length <= 5) {
+    return "*****";
+  }
+  return `*****${value.slice(-5)}`;
+};
+
 export default function ServerDetail({ server, onServerUpdated }: ServerDetailProps) {
   const handleDeleteServer = async () => {
     try {
@@ -59,7 +67,15 @@ ${server.command} ${server.args.join(" ")}
 - **ID**: \`${server.id}\`
 - **Command**: \`${server.command}\`
 - **Arguments**: ${server.args.length > 0 ? server.args.map((arg) => `\`${arg}\``).join(", ") : "None"}
-
+${
+  server.env
+    ? `
+## Environment Variables
+${Object.entries(server.env)
+  .map(([key, value]) => `- **${key}**: \`${maskSensitiveValue(value)}\``)
+  .join("\n")}`
+    : ""
+}
 ${
   server.metadata
     ? `## Metadata
@@ -83,6 +99,17 @@ ${Object.entries(server.metadata)
               <Detail.Metadata.TagList.Item key={getArgKey(arg)} text={arg} />
             ))}
           </Detail.Metadata.TagList>
+          
+          {server.env && Object.keys(server.env).length > 0 && (
+            <>
+              <Detail.Metadata.Separator />
+              <Detail.Metadata.Label title="Environment Variables" />
+              {Object.entries(server.env).map(([key, value]) => (
+                <Detail.Metadata.Label key={key} title={key} text={maskSensitiveValue(value)} />
+              ))}
+            </>
+          )}
+          
           {server.metadata && (
             <>
               <Detail.Metadata.Separator />

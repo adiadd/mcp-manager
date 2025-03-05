@@ -17,10 +17,12 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
     name: string;
     command: string;
     args: string;
+    envVars: string;
   }>({
     name: server?.name || "",
     command: server?.command || "",
     args: server?.args.join("\n") || "",
+    envVars: server?.env ? Object.entries(server.env).map(([key, value]) => `${key}=${value}`).join("\n") : "",
   });
 
   function handleNameChange(value: string) {
@@ -35,6 +37,10 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
 
   function handleArgsChange(value: string) {
     setFormValues((prev) => ({ ...prev, args: value }));
+  }
+
+  function handleEnvVarsChange(value: string) {
+    setFormValues((prev) => ({ ...prev, envVars: value }));
   }
 
   function validateForm(): boolean {
@@ -57,6 +63,27 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
     return isValid;
   }
 
+  // Parse environment variables from multi-line string into object
+  function parseEnvVars(envString: string): Record<string, string> | undefined {
+    const envVars: Record<string, string> = {};
+    const lines = envString.split("\n").filter(line => line.trim().length > 0);
+    
+    if (lines.length === 0) return undefined;
+    
+    for (const line of lines) {
+      const parts = line.split("=");
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join("=").trim();
+        if (key) {
+          envVars[key] = value;
+        }
+      }
+    }
+    
+    return Object.keys(envVars).length > 0 ? envVars : undefined;
+  }
+
   async function handleSubmit() {
     if (isSubmitting) return;
 
@@ -70,6 +97,8 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         .split("\n")
         .map((arg) => arg.trim())
         .filter((arg) => arg.length > 0);
+      
+      const envVars = parseEnvVars(formValues.envVars);
 
       if (server) {
         await updateServer({
@@ -77,6 +106,7 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
           name: formValues.name,
           command: formValues.command,
           args: argsArray,
+          env: envVars,
         });
         showToast({
           style: Toast.Style.Success,
@@ -88,6 +118,7 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
           name: formValues.name,
           command: formValues.command,
           args: argsArray,
+          env: envVars,
         });
         showToast({
           style: Toast.Style.Success,
@@ -143,6 +174,14 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         value={formValues.args}
         onChange={handleArgsChange}
         info="Each line represents a separate argument"
+      />
+      <Form.TextArea
+        id="envVars"
+        title="Environment Variables"
+        placeholder="Enter environment variables as KEY=VALUE, one per line"
+        value={formValues.envVars}
+        onChange={handleEnvVarsChange}
+        info="Each line should be in the format KEY=VALUE"
       />
     </Form>
   );
