@@ -99,7 +99,7 @@ ${Object.entries(server.metadata)
               <Detail.Metadata.TagList.Item key={getArgKey(arg)} text={arg} />
             ))}
           </Detail.Metadata.TagList>
-          
+
           {server.env && Object.keys(server.env).length > 0 && (
             <>
               <Detail.Metadata.Separator />
@@ -109,7 +109,7 @@ ${Object.entries(server.metadata)
               ))}
             </>
           )}
-          
+
           {server.metadata && (
             <>
               <Detail.Metadata.Separator />

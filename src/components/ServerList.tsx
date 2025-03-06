@@ -92,10 +92,10 @@ export default function ServerList() {
       throttle
       actions={
         <ActionPanel>
-          <Action.Push 
-            title="Add Server" 
-            icon={Icon.Plus} 
-            target={<ServerForm onServerAdded={revalidate} />} 
+          <Action.Push
+            title="Add Server"
+            icon={Icon.Plus}
+            target={<ServerForm onServerAdded={revalidate} />}
             shortcut={{ modifiers: ["cmd"], key: "n" }}
           />
         </ActionPanel>
@@ -164,10 +164,10 @@ export default function ServerList() {
           }
           actions={
             <ActionPanel>
-              <Action.Push 
-                title="Add Server" 
-                icon={Icon.Plus} 
-                target={<ServerForm onServerAdded={revalidate} />} 
+              <Action.Push
+                title="Add Server"
+                icon={Icon.Plus}
+                target={<ServerForm onServerAdded={revalidate} />}
                 shortcut={{ modifiers: ["cmd"], key: "n" }}
               />
             </ActionPanel>

@@ -22,7 +22,11 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
     name: server?.name || "",
     command: server?.command || "",
     args: server?.args.join("\n") || "",
-    envVars: server?.env ? Object.entries(server.env).map(([key, value]) => `${key}=${value}`).join("\n") : "",
+    envVars: server?.env
+      ? Object.entries(server.env)
+          .map(([key, value]) => `${key}=${value}`)
+          .join("\n")
+      : "",
   });
 
   function handleNameChange(value: string) {
@@ -66,10 +70,10 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
   // Parse environment variables from multi-line string into object
   function parseEnvVars(envString: string): Record<string, string> | undefined {
     const envVars: Record<string, string> = {};
-    const lines = envString.split("\n").filter(line => line.trim().length > 0);
-    
+    const lines = envString.split("\n").filter((line) => line.trim().length > 0);
+
     if (lines.length === 0) return undefined;
-    
+
     for (const line of lines) {
       const parts = line.split("=");
       if (parts.length >= 2) {
@@ -80,7 +84,7 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         }
       }
     }
-    
+
     return Object.keys(envVars).length > 0 ? envVars : undefined;
   }
 
@@ -97,7 +101,7 @@ export default function ServerForm({ server, onServerAdded }: ServerFormProps) {
         .split("\n")
         .map((arg) => arg.trim())
         .filter((arg) => arg.length > 0);
-      
+
       const envVars = parseEnvVars(formValues.envVars);
 
       if (server) {

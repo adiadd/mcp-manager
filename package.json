@@ -3,19 +3,20 @@
   "name": "mcp-manager",
   "title": "MCP Manager",
   "description": "Manage your local Model Context Protocol (MCP) servers. This extension allows you to view, create, update, and delete MCP servers locally",
-  "icon": "extension-icon.png",
+  "icon": "extension_icon.png",
   "author": "adiadd",
   "owner": "agni-labs",
   "categories": [
-    "Developer Tools"
+    "Developer Tools",
+    "System",
+    "Productivity"
   ],
   "license": "MIT",
   "commands": [
     {
       "name": "mcp-manager",
-      "title": "MCP Manager",
-      "subtitle": "Manage your local MCP servers",
-      "description": "This will allow you to view, create, update, and delete your MCP servers",
+      "title": "Manage MCP Servers",
+      "description": "This will allow you to view, create, update, and delete your local MCP servers",
       "mode": "view"
     }
   ],
